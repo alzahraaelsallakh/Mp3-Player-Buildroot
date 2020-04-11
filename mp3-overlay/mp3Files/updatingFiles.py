@@ -79,13 +79,8 @@ while True:
     if removedSongs:
         print("Songs removed")
 
-        # String to concatenate all deleted lines' numbers
-        deletedLinesNumbers = ''
 
         for song in removedSongs:
-
-            if deletedLinesNumbers:
-                deletedLinesNumbers = deletedLinesNumbers + ','
 
             # Grepping line number command
             lineNumberCMD = "cat " + currentPlayingList + " | grep -n '" + song + "'  | cut -f1 -d:"
@@ -94,17 +89,11 @@ while True:
             lineNumberOutput = subprocess.check_output(lineNumberCMD, shell=True)
             # Decoding the result of the command and getting line number to be deleted
             lineNumber = lineNumberOutput.decode().strip()
-            
-            # Appending line number to string containing all deleted lines' numbers
-            deletedLinesNumbers = deletedLinesNumbers + lineNumber 
 
-        # Appending 'd' to string to be ready for sed command
-        deletedLinesNumbers = deletedLinesNumbers + "'d'"
-        
-        # Deleting specific lines command
-        deletedLinesNumbersCMD = "sed -i " + deletedLinesNumbers + " " + currentPlayingList
-        # Executing deleting specific lines command
-        subprocess.check_output(deletedLinesNumbersCMD, shell=True)
+       	    # Deleting specific lines command
+            deletedLinesNumbersCMD = "sed -i " + deletedLinesNumbers + " " + currentPlayingList
+            # Executing deleting specific lines command
+            subprocess.check_output(deletedLinesNumbersCMD, shell=True)
 
     time.sleep(1)
 
