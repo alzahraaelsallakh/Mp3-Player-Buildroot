@@ -91,7 +91,7 @@ while True:
             lineNumber = lineNumberOutput.decode().strip()
 
        	    # Deleting specific lines command
-            deletedLinesNumbersCMD = "sed -i " + deletedLinesNumbers + " " + currentPlayingList
+            deletedLinesNumbersCMD = "sed -i " + lineNumber + "'d' " + currentPlayingList
             # Executing deleting specific lines command
             subprocess.check_output(deletedLinesNumbersCMD, shell=True)
 
