@@ -1,0 +1,9 @@
+#buildroot/package/rpi-firmware/config.txt
+#to activate raspberry Pi sound card
+dtparam=audio=on
+
+
+#buildroot/package/busybox/busybox.config
+#to enable generating random permutation of data(Shuffling) 
+CONFIG_SHUF=y
+
