@@ -1,0 +1,19 @@
+#!/bin/sh
+
+sudo bluetoothctl
+power on
+agent on
+echo 'Enter MAC Address of Device you want to connect with : '
+read mac;
+connect ${mac}
+trust ${mac}
+exit
+
+SEARCH_PATH="$1"
+find $SEARCH_PATH -iname "*mp3" | shuf | while read song
+
+aplay -D bluealsa:SRV=org.bluealsa,DEV=${mac},PROFILE=a2dp ${song}.mp3
+#to switch audio to HDMI
+amixer cset numid=3 2
+#to switch audio to audio jack
+amixer cset numid=3 1
