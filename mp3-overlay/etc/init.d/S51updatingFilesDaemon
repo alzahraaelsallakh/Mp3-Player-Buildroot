@@ -15,4 +15,4 @@
 
 
 python3 /mp3Files/updatingFiles.py > /mp3Files/updating.log 2>&1 &
-python3 /mp3Files/checkingStorageDevices.py > /mp3Files/updating.log 2>&1 &
+

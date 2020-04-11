@@ -9,7 +9,7 @@ availableSongsFile = "/mp3Files/availableSongs.txt"
 #availableSongsFile = "availableSongs.txt"
 
 #File that contains current playing list
-currentPlayingList = "/mp3Files/RunningSongs.txt"
+currentPlayingList = "/mp3Files/songlist.txt"
 #currentPlayingList = "RunningSongs.txt"
 
 

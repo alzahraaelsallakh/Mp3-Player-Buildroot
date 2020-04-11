@@ -14,4 +14,6 @@
 ### END INIT INFO
 
 
-python3 /mp3Files/checkingStorageDevices.py > /mp3Files/updating.log 2>&1 &
+
+./mp3Files/mp3main > /dev/null 2>&1 &
+
