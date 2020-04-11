@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# updating songs initscript
+#
+### BEGIN INIT INFO
+# Provides:          running updating songs script
+# Required-Start:    
+# Required-Stop:     
+# Default-Start:     
+# Default-Stop:      
+# Short-Description: Running python script
+# Description:       This script runs python script to monitor changes 
+#		     in mp3 files and append them to the required text file		     
+### END INIT INFO
+
+
+python3 /mp3Files/updatingFiles.py > /mp3Files/updating.log 2>&1 &
+python3 /mp3Files/checkingStorageDevices.py > /mp3Files/updating.log 2>&1 &
