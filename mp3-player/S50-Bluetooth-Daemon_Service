@@ -1,4 +1,0 @@
-#!/bin/sh
-
-/root/mp3-player/Bluetooth_init
-/root/mp3-player/audio_ouput
