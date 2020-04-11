@@ -1,0 +1,9 @@
+sed: unsupported command ,
+All is up to date
+Songs removed
+Traceback (most recent call last):
+  File "/mp3Files/updatingFiles.py", line 107, in <module>
+    subprocess.check_output(deletedLinesNumbersCMD, shell=True)
+  File "usr/lib/python3.8/subprocess.py", line 411, in check_output
+  File "usr/lib/python3.8/subprocess.py", line 512, in run
+subprocess.CalledProcessError: Command 'sed -i 4,1,6,9,10,5,3,7,11,2,8'd' /mp3Files/songlist.txt' returned non-zero exit status 1.

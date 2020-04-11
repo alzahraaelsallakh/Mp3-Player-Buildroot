@@ -1,10 +1,9 @@
 
 ##########################Preparing List of Songs#########################
 NumOfSongs=0
-ls *.mp3 >songlist.txt
-NumOfSongs=$(ls -l *.mp3 | wc -l )
-MaxCounter=$(( $NumOfSongs + 1 ))
-
+#NumOfSongs=$(wc -l songlist.txt )
+#MaxCounter=$(($NumOfSongs +1))
+MaxCounter=7
 ######################### GPIO Initialization ##########################
 # ON/OFF LED
 if [ ! -d /sys/class/gpio/gpio4 ]
@@ -66,6 +65,7 @@ echo "Headphone" > .AudioDeviceNameFile
 myCOUNTER=1
 shuffleMode=0
 SONG=0
+SongList="/mp3Files/songlist.txt"
 
 PlayPauseButton=0
 NextButton=0
@@ -91,14 +91,20 @@ PrevSignal=$( sed -n '1 p' < .PrevSignalFile)
 ShuffSignal=$( sed -n '1 p' < .ShuffSignalFile)
 AudioDeviceName=$( sed -n '1 p' < .AudioDeviceNameFile)
 
-if [ $COUNTER -lt $MaxCounter ]
+if [ -f $SongList ]
+then
+	NumOfSongs=$(cat $SongList | wc -l )               
+	MaxCounter=$(( $NumOfSongs + 1 )) 
+fi 
+
+if [ $COUNTER -gt 0 ] &&  [ $COUNTER -lt $MaxCounter ]
 then 
 
         if [ $PlayPauseButton == '1' ] && [ $StopSignal -eq 0 ] 
         then
-                myCOUNTER=$(($myCOUNTER + 1 ))
-                echo $myCOUNTER > .CounterFile
-                SONG=$(sed -n "$COUNTER p" < songlist.txt )
+               # myCOUNTER=$(($myCOUNTER + 1 ))
+               # echo $myCOUNTER > .CounterFile
+                SONG=$(sed -n "$COUNTER p" < $SongList )
 		if [ ! $SONG ]
 		then
 			echo "No .MP3 files found"
@@ -113,9 +119,9 @@ then
 
 	elif [ $PlaySignal -eq 1 ] && [ $StopSignal -eq 0 ] 
         then
-                myCOUNTER=$(($myCOUNTER + 1 ))
-                echo $myCOUNTER > .CounterFile
-                SONG=$(sed -n "$COUNTER p" < songlist.txt )
+               # myCOUNTER=$(($myCOUNTER + 1 ))
+               # echo $myCOUNTER > .CounterFile
+                SONG=$(sed -n "$COUNTER p" < $SongList )
 		if [ ! $SONG ]
 		then
 			echo "No .MP3 files found"
@@ -126,7 +132,7 @@ then
                 echo 0 > .PlaySignalFile
                 StopSignal=1
                 echo $StopSignal > .StopSignalFile
-               echo "MP3 Playing >" $SONG "Via: " $AudioDeviceName
+               echo "MP3 Playing >" $SONG "Via: " ONG "Via: " $AudioDeviceName
 
         elif [ $PlayPauseButton == '1' ] && [ $StopSignal -eq 1 ]
         then
@@ -139,11 +145,11 @@ then
            
         elif [ $NextButton == '1' ] && [ $StopSignal -eq 1 ]
         then
-		myCOUNTER=$(($myCOUNTER + 1 ))
+		myCOUNTER=$(($COUNTER + 1 ))
                 echo $myCOUNTER > .CounterFile
                 pidof mpg123 | xargs kill -9 >/dev/null
                 NextButton='0'
-                SONG=$(sed -n "$COUNTER p" < songlist.txt )
+                SONG=$(sed -n "$myCOUNTER p" < $SongList )
 		if [ ! $SONG ]
 		then
 			echo "No .MP3 files found"
@@ -160,7 +166,7 @@ then
 		echo 0 > .NextSignalFile
 		myCOUNTER=$(($myCOUNTER + 1 ))
                 echo $myCOUNTER > .CounterFile
-                export SONG=$(sed -n "$COUNTER p" < songlist.txt )
+                export SONG=$(sed -n "$myCOUNTER p" < $SongList )
 		if [ ! $SONG ]
 		then
 			echo "No .MP3 files found"
@@ -173,16 +179,17 @@ then
         then
                 pidof mpg123 | xargs kill -9 >/dev/null
                 PrevButton='0'
-                export SONG=$(sed -n "$COUNTER p" < songlist.txt )
+                #export SONG=$(sed -n "$COUNTER p" < $SongList )
 		if [ ! $SONG ]
 		then
 			echo "No .MP3 files found"
 		else
+			export SONG=$(sed -n "$myCOUNTER p" < $SongList ) 
                 	mpg123 -q $SONG &
-			myCOUNTER=$(($myCOUNTER - 1 ))
+			myCOUNTER=$(($COUNTER - 1 ))
 			if [ $myCOUNTER -lt 1 ]
 			then		
-				myCOUNTER=1
+				myCOUNTER=$NumOfSongs
 			fi
                 	echo $myCOUNTER > .CounterFile
 			echo "MP3 playing >" $SONG " Via: " $AudioDeviceName
@@ -193,16 +200,17 @@ then
                 pidof mpg123 | xargs kill -9 >/dev/null
                 PrevButton='0'
 		echo 0 > .PrevSignalFile
-                export SONG=$(sed -n "$COUNTER p" < songlist.txt )
+                #export SONG=$(sed -n "$COUNTER p" < $SongList )
 		if [ ! $SONG ]
 		then
 			echo "No .MP3 files found"
 		else
+                	export SONG=$(sed -n "$myCOUNTER p" < $SongList ) 
                 	mpg123 -q $SONG &
 			myCOUNTER=$(($myCOUNTER - 1 ))
 			if [ $myCOUNTER -lt 1 ]
 			then		
-			myCOUNTER=1
+				myCOUNTER=$NumOfSongs
 			fi
                 	echo $myCOUNTER > .CounterFile
 			echo "MP3 playing >" $SONG " Via: " $AudioDeviceName
@@ -240,7 +248,7 @@ then
 			fi
 			
                 	echo $myCOUNTER > .CounterFile
-                        SONG=$(sed -n "$COUNTER p" < songlist.txt )
+                        SONG=$(sed -n "$COUNTER p" < $SongList )
 			if [ ! $SONG ]
 			then
 				echo "No .MP3 files found"
@@ -260,6 +268,6 @@ else
 
 fi
 
-sleep 2 
+sleep 1 
 
 done &

@@ -1,0 +1,11 @@
+/media/mount_mmcblk0p2/Songs/rasha.mp3
+/media/mount_mmcblk0p2/Songs/3emdan.mp3
+/media/mount_mmcblk0p2/Songs/passenger.mp3
+/media/mount_mmcblk0p2/Songs/fayrouz.mp3
+/media/mount_mmcblk0p2/Songs/abdelhalim.mp3
+/media/mount_mmcblk0p2/MY_SONGS/1.mp3
+/media/mount_mmcblk0p2/Songs/heyyou.mp3
+/media/mount_sda1/Joh?.mp3
+/media/mount_sda1/Julia.mp3
+/media/mount_sda1/Tourner.mp3
+/media/mount_sda1/Indila.mp3
