@@ -1,0 +1,32 @@
+while :
+do
+  
+  read REPLY </dev/tty
+  echo $REPLY   
+
+  if [ $REPLY == "stop" ]
+  then
+        pidof mpg123 | xargs kill -9
+        echo 0 > .StopSignalFile
+
+  elif [ $REPLY == "play" ]
+  then 
+	echo 1 > .PlaySignalFile
+   
+
+  elif [ $REPLY == "next" ]
+  then 
+	echo 1 > .NextSignalFile
+  
+  elif [ $REPLY == "prev" ]
+  then 
+	echo 1 > .PrevSignalFile
+  
+
+  elif [ $REPLY == "shuff" ]
+  then 
+	echo 1 > .ShuffSignalFile
+  fi
+
+done
+

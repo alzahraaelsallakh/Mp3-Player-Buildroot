@@ -1,0 +1,265 @@
+
+##########################Preparing List of Songs#########################
+NumOfSongs=0
+ls *.mp3 >songlist.txt
+NumOfSongs=$(ls -l *.mp3 | wc -l )
+MaxCounter=$(( $NumOfSongs + 1 ))
+
+######################### GPIO Initialization ##########################
+# ON/OFF LED
+if [ ! -d /sys/class/gpio/gpio4 ]
+then
+        echo "4" >/sys/class/gpio/export
+        echo "out" >/sys/class/gpio/gpio4/direction
+        echo "1" >/sys/class/gpio/gpio4/value
+fi
+
+#Play/Pause Button
+if [ ! -d /sys/class/gpio/gpio17 ]
+then
+        echo "17" >/sys/class/gpio/export
+        echo "in" >/sys/class/gpio/gpio17/direction
+fi
+
+#Next Button
+if [ ! -d /sys/class/gpio/gpio13 ]
+then
+        echo "13" >/sys/class/gpio/export
+        echo "in" >/sys/class/gpio/gpio13/direction
+fi
+
+#Previous Button
+if [ ! -d /sys/class/gpio/gpio6 ]
+then
+        echo "6" >/sys/class/gpio/export
+        echo "in" >/sys/class/gpio/gpio6/direction
+fi
+
+#Shuffle Button
+if [ ! -d /sys/class/gpio/gpio5 ]
+then
+        echo "5" >/sys/class/gpio/export
+        echo "in" >/sys/class/gpio/gpio5/direction
+fi
+######################### Loading needed Modules ###############################
+               		 modprobe snd-bcm2835
+
+######################### Signal Files Initialization ##########################
+#creating hidden file to hold the current SONG from command line
+echo 0 > .SongFile
+#creating hidden file to hold the stop signal from command line
+echo 1 > .CounterFile
+#creating hidden file to hold the stop signal from command line
+echo 0 > .StopSignalFile
+#creating hidden file to hold the Play signal from command line
+echo 0 > .PlaySignalFile
+#creating hidden file to hold the Next signal from command line
+echo 0 > .NextSignalFile
+#creating hidden file to hold the Prev signal from command line
+echo 0 > .PrevSignalFile
+#creating hidden file to hold the Shuff signal from command line
+echo 0 > .ShuffSignalFile
+#creating hidden file to hold the Audio Device Name from command line
+echo "Headphone" > .AudioDeviceNameFile
+
+######################### Local and Global Initialization ##########################
+myCOUNTER=1
+shuffleMode=0
+SONG=0
+
+PlayPauseButton=0
+NextButton=0
+PrevButton=0
+ShuffButton=0
+
+######################### MP3 Player Logic ##########################
+
+while :
+do
+
+########Reading Variables that Changes in Runtime 
+PlayPauseButton=$( sed -n '1 p' < /sys/class/gpio/gpio17/value)
+NextButton=$( sed -n '1 p' < /sys/class/gpio/gpio13/value)
+PrevButton=$( sed -n '1 p' < /sys/class/gpio/gpio6/value)
+ShuffButton=$( sed -n '1 p' < /sys/class/gpio/gpio5/value)
+
+COUNTER=$( sed -n '1 p' < .CounterFile)
+StopSignal=$( sed -n '1 p' < .StopSignalFile)                     
+PlaySignal=$( sed -n '1 p' < .PlaySignalFile)
+NextSignal=$( sed -n '1 p' < .NextSignalFile)
+PrevSignal=$( sed -n '1 p' < .PrevSignalFile)
+ShuffSignal=$( sed -n '1 p' < .ShuffSignalFile)
+AudioDeviceName=$( sed -n '1 p' < .AudioDeviceNameFile)
+
+if [ $COUNTER -lt $MaxCounter ]
+then 
+
+        if [ $PlayPauseButton == '1' ] && [ $StopSignal -eq 0 ] 
+        then
+                myCOUNTER=$(($myCOUNTER + 1 ))
+                echo $myCOUNTER > .CounterFile
+                SONG=$(sed -n "$COUNTER p" < songlist.txt )
+		if [ ! $SONG ]
+		then
+			echo "No .MP3 files found"
+		else
+                	mpg123 -q $SONG &
+        		echo "1" >/sys/class/gpio/gpio4/value
+		fi
+		PlayPauseButton='0'
+                StopSignal=1
+                echo $StopSignal > .StopSignalFile
+                echo "MP3 Playing >" $SONG "Via: " $AudioDeviceName
+
+	elif [ $PlaySignal -eq 1 ] && [ $StopSignal -eq 0 ] 
+        then
+                myCOUNTER=$(($myCOUNTER + 1 ))
+                echo $myCOUNTER > .CounterFile
+                SONG=$(sed -n "$COUNTER p" < songlist.txt )
+		if [ ! $SONG ]
+		then
+			echo "No .MP3 files found"
+		else
+                	mpg123 -q $SONG &
+        		echo "1" >/sys/class/gpio/gpio4/value
+		fi
+                echo 0 > .PlaySignalFile
+                StopSignal=1
+                echo $StopSignal > .StopSignalFile
+               echo "MP3 Playing >" $SONG "Via: " $AudioDeviceName
+
+        elif [ $PlayPauseButton == '1' ] && [ $StopSignal -eq 1 ]
+        then
+                pidof mpg123 | xargs kill -9 >/dev/null
+                StopSignal=0
+                echo $StopSignal > .StopSignalFile
+                PlayPauseButton='0'
+                echo "0" >/sys/class/gpio/gpio4/value
+                echo "MP3 Paused >" $SONG "that was playing Via: " $AudioDeviceName
+           
+        elif [ $NextButton == '1' ] && [ $StopSignal -eq 1 ]
+        then
+		myCOUNTER=$(($myCOUNTER + 1 ))
+                echo $myCOUNTER > .CounterFile
+                pidof mpg123 | xargs kill -9 >/dev/null
+                NextButton='0'
+                SONG=$(sed -n "$COUNTER p" < songlist.txt )
+		if [ ! $SONG ]
+		then
+			echo "No .MP3 files found"
+		else
+                	mpg123 -q $SONG &
+			echo "MP3 playing >" $SONG " Via: " $AudioDeviceName
+		fi
+
+        elif [ $NextSignal -eq 1 ] && [ $StopSignal -eq 1 ]
+        then
+		
+                pidof mpg123 | xargs kill -9 >/dev/null
+                NextButton='0'
+		echo 0 > .NextSignalFile
+		myCOUNTER=$(($myCOUNTER + 1 ))
+                echo $myCOUNTER > .CounterFile
+                export SONG=$(sed -n "$COUNTER p" < songlist.txt )
+		if [ ! $SONG ]
+		then
+			echo "No .MP3 files found"
+		else
+                	mpg123 -q $SONG &
+			echo "MP3 playing >" $SONG " Via: " $AudioDeviceName
+		fi
+
+        elif [ $PrevButton == '1' ] && [ $StopSignal -eq 1 ]
+        then
+                pidof mpg123 | xargs kill -9 >/dev/null
+                PrevButton='0'
+                export SONG=$(sed -n "$COUNTER p" < songlist.txt )
+		if [ ! $SONG ]
+		then
+			echo "No .MP3 files found"
+		else
+                	mpg123 -q $SONG &
+			myCOUNTER=$(($myCOUNTER - 1 ))
+			if [ $myCOUNTER -lt 1 ]
+			then		
+				myCOUNTER=1
+			fi
+                	echo $myCOUNTER > .CounterFile
+			echo "MP3 playing >" $SONG " Via: " $AudioDeviceName
+		fi
+
+        elif [ $PrevSignal -eq 1 ] && [ $StopSignal -eq 1 ]
+        then
+                pidof mpg123 | xargs kill -9 >/dev/null
+                PrevButton='0'
+		echo 0 > .PrevSignalFile
+                export SONG=$(sed -n "$COUNTER p" < songlist.txt )
+		if [ ! $SONG ]
+		then
+			echo "No .MP3 files found"
+		else
+                	mpg123 -q $SONG &
+			myCOUNTER=$(($myCOUNTER - 1 ))
+			if [ $myCOUNTER -lt 1 ]
+			then		
+			myCOUNTER=1
+			fi
+                	echo $myCOUNTER > .CounterFile
+			echo "MP3 playing >" $SONG " Via: " $AudioDeviceName
+		fi
+        elif [ $ShuffButton == '1' ] && [ $StopSignal -eq 1 ]
+        then
+		if [ shuffleMode == 0 ] 
+		then
+			shuffleMode=1
+		else
+			shuffleMode=0
+		fi
+
+
+        elif [ $ShuffSignal -eq 1 ] && [ $StopSignal -eq 1 ]
+        then
+		if [ shuffleMode == 0 ] 
+		then
+			shuffleMode=1
+		else
+			shuffleMode=0
+		fi
+
+		echo 0 > .ShuffSignalFile
+
+        elif  [ $PlayPauseButton = '0' ] && [ $StopSignal -eq 1 ]
+        then
+                if [ ! $(pidof mpg123) ]  
+                then
+			if [ shuffleMode == 1 ]
+			then
+                        	myCOUNTER=$(($myCOUNTER + 2 ))
+			else
+                        	myCOUNTER=$(($myCOUNTER + 1 ))
+			fi
+			
+                	echo $myCOUNTER > .CounterFile
+                        SONG=$(sed -n "$COUNTER p" < songlist.txt )
+			if [ ! $SONG ]
+			then
+				echo "No .MP3 files found"
+			else
+                        	mpg123 -q $SONG &
+                		echo "MP3 Playing >" $SONG "Via: " $AudioDeviceName
+			fi
+                fi                                     
+              
+        fi
+
+   
+else
+	#List Reached its End and Counter is set again to the beginning of List
+        myCOUNTER=1
+        echo $myCOUNTER > .CounterFile
+
+fi
+
+sleep 2 
+
+done &
