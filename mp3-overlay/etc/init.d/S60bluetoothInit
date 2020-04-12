@@ -1,0 +1,19 @@
+
+#python3 /mp3Files/updatingFiles.py > /mp3Files/updating.log 2>&1 &
+
+# Loading kernel module
+
+modprobe btusb
+modprobe hci_uart
+
+# Attaching UART to bluetooth
+
+hciattach /dev/ttyAMA0 bcm43xx 115200 noflow -
+
+# Running bluetooth daemon
+/usr/libexec/bluetooth/bluetoothd &
+
+# Running up HCI interface
+hciconfig hci0 up
+
+
