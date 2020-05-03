@@ -1,22 +1,20 @@
 #!/bin/sh
 
 
+# Setting shell prompt to "MP3_Shell" 
 echo 'PS1="MP3_Shell>"' >> ${TARGET_DIR}/etc/profile
 
+# Compiling "welcome to application" program
 output/host/bin/aarch64-linux-gcc myApplications/printHello.c -o ${TARGET_DIR}/myApplications/printHello.o
 
+# Running "welcome to application" program at initial time
 echo "/myApplications/printHello.o" >> ${TARGET_DIR}/etc/profile
 
+# Setting working directory to "mp3Files" at initial time
 echo "cd /mp3Files" >> ${TARGET_DIR}/etc/profile
 
+# Running keyboard commands script
 echo "./mp3commandline" >> ${TARGET_DIR}/etc/profile
 
-########################Audio Output Settings##########################################
-
-#sudo cp $(dirname $0)/mp3-player/S50-Bluetooth-Daemon-service ${TARGET_DIR}/etc/init.d/
-#sudo chmod 777 ${TARGET_DIR}/etc/init.d/S50-Bluetooth-Daemon-service
-
-#sudo cp $(dirname $0)/mp3-player/Bluetooth_init ${TARGET_DIR}/root/mp3-player/
-#sudo cp $(dirname $0)/mp3-player/audio_ouput ${TARGET_DIR}/root/mp3-player/
-
-#sudo chmod -R 777 ${TARGET_DIR}/root
+# Bluetooth setup
+echo 'root=/dev/mmcblk0p2 rootwait console=tty1 console=ttyS0,115200' > output/images/rpi-firmware/cmdline.txt
